@@ -2,12 +2,14 @@ import React from 'react';
 import { CommentState, CommentReply } from '../types';
 import { CommentFeedItem } from './CommentFeedItem';
 import { TikTokVerifiedBadge, TikTokHeartIcon } from './TikTokBadges';
+import { Camera } from 'lucide-react';
 
 interface CommentThreadProps {
   state: CommentState;
   id?: string;
   onToggleMainLike?: () => void;
   onToggleReplyLike?: (replyId: string) => void;
+  onUpdateState?: (updates: Partial<CommentState>) => void;
 }
 
 export const CommentThread: React.FC<CommentThreadProps> = ({
@@ -15,6 +17,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
   id = 'tiktok-comment-thread',
   onToggleMainLike,
   onToggleReplyLike,
+  onUpdateState,
 }) => {
   const isDark = state.theme === 'dark';
 
@@ -42,6 +45,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
         state={state}
         id="tiktok-parent-comment"
         onToggleLike={onToggleMainLike}
+        onUpdateState={onUpdateState}
       />
 
       {/* Replies section */}
@@ -50,13 +54,43 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
           {state.replies.map((reply: CommentReply) => (
             <div key={reply.id} className="flex items-start gap-3 relative">
               {/* Left subtle vertical connection line */}
-              <div className="relative shrink-0">
+              <div className="relative shrink-0 group">
                 <img
                   src={reply.avatar}
                   alt={reply.name}
                   referrerPolicy="no-referrer"
                   className="w-7 h-7 rounded-full object-cover ring-1 ring-black/5 dark:ring-white/5"
                 />
+                {onUpdateState && (
+                  <label
+                    title="Change reply photo"
+                    className="no-export absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity text-white"
+                  >
+                    <Camera className="w-3 h-3 text-white" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            if (typeof reader.result === 'string') {
+                              const updated = state.replies.map((r) =>
+                                r.id === reply.id
+                                  ? { ...r, avatar: reader.result as string }
+                                  : r
+                              );
+                              onUpdateState({ replies: updated });
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                )}
               </div>
 
               {/* Reply Body */}

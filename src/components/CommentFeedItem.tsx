@@ -1,17 +1,20 @@
 import React from 'react';
 import { CommentState } from '../types';
 import { TikTokVerifiedBadge, TikTokPinIcon, TikTokHeartIcon } from './TikTokBadges';
+import { Camera } from 'lucide-react';
 
 interface CommentFeedItemProps {
   state: CommentState;
   id?: string;
   onToggleLike?: () => void;
+  onUpdateState?: (updates: Partial<CommentState>) => void;
 }
 
 export const CommentFeedItem: React.FC<CommentFeedItemProps> = ({
   state,
   id = 'tiktok-comment-feed-item',
   onToggleLike,
+  onUpdateState,
 }) => {
   const isDark = state.theme === 'dark';
 
@@ -44,13 +47,39 @@ export const CommentFeedItem: React.FC<CommentFeedItemProps> = ({
 
       <div className="flex items-start gap-3">
         {/* Author Avatar */}
-        <div className="relative shrink-0">
+        <div className="relative shrink-0 group">
           <img
             src={state.avatar}
             alt={state.name}
             referrerPolicy="no-referrer"
             className="w-10 h-10 rounded-full object-cover ring-1 ring-black/5 dark:ring-white/5"
           />
+          {onUpdateState && (
+            <label
+              title="Click to change profile picture"
+              className="no-export absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-[8px] font-semibold"
+            >
+              <Camera className="w-3.5 h-3.5 text-white mb-0.5" />
+              <span>Change</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      if (typeof reader.result === 'string') {
+                        onUpdateState({ avatar: reader.result });
+                      }
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                className="hidden"
+              />
+            </label>
+          )}
         </div>
 
         {/* Comment Content */}

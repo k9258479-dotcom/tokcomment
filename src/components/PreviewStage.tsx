@@ -609,6 +609,7 @@ export const PreviewStage: React.FC<PreviewStageProps> = ({ state, onUpdateState
                     onToggleLike={() =>
                       onUpdateState({ isLiked: !state.isLiked })
                     }
+                    onUpdateState={onUpdateState}
                   />
                 ) : (
                   <CommentThread
@@ -622,6 +623,7 @@ export const PreviewStage: React.FC<PreviewStageProps> = ({ state, onUpdateState
                       );
                       onUpdateState({ replies: updated });
                     }}
+                    onUpdateState={onUpdateState}
                   />
                 )}
               </div>

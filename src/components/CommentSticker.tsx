@@ -1,6 +1,7 @@
 import React from 'react';
 import { CommentState } from '../types';
 import { TikTokVerifiedBadge, TikTokLogoIcon } from './TikTokBadges';
+import { Camera } from 'lucide-react';
 
 interface CommentStickerProps {
   state: CommentState;
@@ -91,14 +92,40 @@ export const CommentSticker: React.FC<CommentStickerProps> = ({
       }}
     >
       <div className="flex items-start gap-3.5">
-        {/* Author Avatar */}
-        <div className="relative shrink-0 pt-0.5">
+        {/* Author Avatar with direct upload support */}
+        <div className="relative shrink-0 pt-0.5 group">
           <img
             src={state.avatar}
             alt={state.name || cleanUsername}
             referrerPolicy="no-referrer"
             className="w-12 h-12 rounded-full object-cover ring-1 ring-black/5 dark:ring-white/10 shadow-sm"
           />
+          {isEditable && onUpdateState && (
+            <label
+              title="Click to upload your own profile photo"
+              className="no-export absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-[9px] font-semibold"
+            >
+              <Camera className="w-4 h-4 mb-0.5 text-white" />
+              <span>Change</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      if (typeof reader.result === 'string') {
+                        onUpdateState({ avatar: reader.result });
+                      }
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                className="hidden"
+              />
+            </label>
+          )}
         </div>
 
         {/* Text Body */}

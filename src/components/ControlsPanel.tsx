@@ -17,6 +17,8 @@ import {
   MessageSquare,
   FileText,
   RotateCcw,
+  Camera,
+  Link as LinkIcon,
 } from 'lucide-react';
 
 interface ControlsPanelProps {
@@ -33,6 +35,7 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
   const [activeTab, setActiveTab] = useState<'content' | 'profile' | 'style' | 'replies'>('content');
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [avatarCategory, setAvatarCategory] = useState<'girls' | 'guys' | 'memes' | 'creators'>('creators');
+  const [openReplyAvatarPickerId, setOpenReplyAvatarPickerId] = useState<string | null>(null);
 
   // Handle custom avatar upload
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,6 +45,26 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
       reader.onload = () => {
         if (typeof reader.result === 'string') {
           onUpdateState({ avatar: reader.result });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle reply avatar upload
+  const handleReplyAvatarUpload = (
+    replyId: string,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          const updated = state.replies.map((r) =>
+            r.id === replyId ? { ...r, avatar: reader.result as string } : r
+          );
+          onUpdateState({ replies: updated });
         }
       };
       reader.readAsDataURL(file);
@@ -458,6 +481,22 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
                 </div>
               </div>
 
+              {/* Paste Direct Image URL */}
+              <div className="mt-2.5 flex items-center gap-1.5 bg-neutral-950 px-2.5 py-1.5 rounded-lg border border-neutral-800">
+                <LinkIcon className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                <input
+                  type="url"
+                  value={state.avatar.startsWith('data:') ? '' : state.avatar}
+                  onChange={(e) => {
+                    if (e.target.value.trim()) {
+                      onUpdateState({ avatar: e.target.value.trim() });
+                    }
+                  }}
+                  placeholder="Or paste direct image URL (https://...)"
+                  className="w-full bg-transparent border-none text-xs text-white placeholder-neutral-500 focus:outline-none"
+                />
+              </div>
+
               {/* Preset Avatars Drawer */}
               {showAvatarPicker && (
                 <div className="mt-3 p-3 bg-neutral-950 rounded-xl border border-neutral-800">
@@ -841,6 +880,90 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
+
+                {/* Reply Profile Avatar Row */}
+                <div className="flex items-center gap-2.5 p-2 bg-neutral-900/90 rounded-lg border border-neutral-800">
+                  <div className="relative group shrink-0">
+                    <img
+                      src={reply.avatar}
+                      alt={reply.name}
+                      className="w-9 h-9 rounded-full object-cover ring-1 ring-neutral-700 shadow-sm"
+                    />
+                    <label
+                      title="Upload photo"
+                      className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity text-white text-[10px]"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleReplyAvatarUpload(reply.id, e)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[11px] font-semibold text-neutral-300 block">
+                      Profile Picture
+                    </span>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <label className="text-[10px] px-2 py-0.5 bg-[#FE2C55] hover:bg-[#ff1a47] text-white font-semibold rounded cursor-pointer flex items-center gap-1 transition-colors">
+                        <Upload className="w-2.5 h-2.5" />
+                        <span>Upload Photo</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleReplyAvatarUpload(reply.id, e)}
+                          className="hidden"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenReplyAvatarPickerId(
+                            openReplyAvatarPickerId === reply.id ? null : reply.id
+                          )
+                        }
+                        className="text-[10px] px-2 py-0.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded border border-neutral-700"
+                      >
+                        Presets
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Drawer for Reply Avatar Presets */}
+                {openReplyAvatarPickerId === reply.id && (
+                  <div className="p-2.5 bg-neutral-900 rounded-lg border border-neutral-700/60">
+                    <p className="text-[10px] text-neutral-400 font-semibold mb-1.5 uppercase">
+                      Select Preset Profile:
+                    </p>
+                    <div className="grid grid-cols-6 gap-1.5 max-h-28 overflow-y-auto pr-1">
+                      {AVATAR_PRESETS.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            const updated = state.replies.map((r) =>
+                              r.id === reply.id ? { ...r, avatar: p.url } : r
+                            );
+                            onUpdateState({ replies: updated });
+                            setOpenReplyAvatarPickerId(null);
+                          }}
+                          className="rounded-full overflow-hidden aspect-square ring-1 ring-neutral-700 hover:ring-[#FE2C55] transition-all"
+                          title={p.name}
+                        >
+                          <img
+                            src={p.url}
+                            alt={p.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-2">
                   <input
