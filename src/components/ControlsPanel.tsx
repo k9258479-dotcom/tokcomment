@@ -734,7 +734,7 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
                   <label className="text-xs font-semibold text-neutral-300 block mb-1.5">
                     Reply Header Format
                   </label>
-                  <div className="grid grid-cols-2 gap-1.5">
+                  <div className="grid grid-cols-3 gap-1.5">
                     <button
                       type="button"
                       onClick={() => onUpdateState({ replyHeaderFormat: 'reply_to_user' })}
@@ -743,9 +743,24 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
                           ? 'border-[#FE2C55] bg-rose-500/10 text-rose-300'
                           : 'border-neutral-800 text-neutral-400 hover:bg-neutral-900'
                       }`}
+                      title="Reply to username's comment"
                     >
-                      <span className="font-bold block text-white">Reply to user's</span>
-                      <span>(Screenshot style)</span>
+                      <span className="font-bold block text-white">Reply to...'s</span>
+                      <span className="text-[10px] text-neutral-400">comment</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onUpdateState({ replyHeaderFormat: 'reply_to_user_only' })}
+                      className={`p-2 rounded-lg border text-left text-[11px] leading-tight font-medium ${
+                        state.replyHeaderFormat === 'reply_to_user_only'
+                          ? 'border-[#FE2C55] bg-rose-500/10 text-rose-300'
+                          : 'border-neutral-800 text-neutral-400 hover:bg-neutral-900'
+                      }`}
+                      title="Reply to username"
+                    >
+                      <span className="font-bold block text-white">Reply to...</span>
+                      <span className="text-[10px] text-neutral-400">(no "comment")</span>
                     </button>
 
                     <button
@@ -756,10 +771,39 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
                           ? 'border-[#FE2C55] bg-rose-500/10 text-rose-300'
                           : 'border-neutral-800 text-neutral-400 hover:bg-neutral-900'
                       }`}
+                      title="Replying to @username"
                     >
-                      <span className="font-bold block text-white">Replying to @user</span>
-                      <span>(Feed style)</span>
+                      <span className="font-bold block text-white">Replying to</span>
+                      <span className="text-[10px] text-neutral-400">@username</span>
                     </button>
+                  </div>
+                </div>
+
+                {/* Sticker Card Width Slider */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-neutral-300">
+                      Sticker Bubble Width
+                    </label>
+                    <span className="text-xs font-mono text-neutral-400">
+                      {state.stickerWidth || 420}px
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="340"
+                    max="520"
+                    step="10"
+                    value={state.stickerWidth || 420}
+                    onChange={(e) =>
+                      onUpdateState({ stickerWidth: Number(e.target.value) })
+                    }
+                    className="w-full accent-[#FE2C55]"
+                  />
+                  <div className="flex justify-between text-[10px] text-neutral-500 mt-0.5">
+                    <span>Compact (340px)</span>
+                    <span>Default (420px)</span>
+                    <span>Wide (520px)</span>
                   </div>
                 </div>
 

@@ -31,6 +31,7 @@ export const CommentSticker: React.FC<CommentStickerProps> = ({
   const borderRadius = state.stickerBorderRadius ?? 18;
   const fontSize = state.stickerFontSize ?? 21;
   const showTail = state.showSpeechBubbleTail ?? true;
+  const stickerWidth = state.stickerWidth ?? 420;
 
   // Header display logic (e.g. "Reply to username's comment" like in screenshot)
   const cleanUsername = state.username.replace(/^@/, '') || 'username';
@@ -38,15 +39,25 @@ export const CommentSticker: React.FC<CommentStickerProps> = ({
   const renderHeader = () => {
     if (state.replyHeaderFormat === 'replying_to_handle') {
       return (
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className={`text-[13.5px] font-medium ${headerGray} leading-tight`}>
-            Replying to
-          </span>
+        <div className={`text-[13px] sm:text-[13.5px] font-bold ${headerGray} leading-none flex items-center gap-1.5 whitespace-nowrap overflow-hidden text-ellipsis`}>
+          <span className="shrink-0">Replying to</span>
           <span
-            className={`text-[13.5px] font-bold leading-tight flex items-center gap-1 ${headerUserColor}`}
+            className={`font-extrabold ${headerUserColor} flex items-center gap-1 truncate`}
           >
             @{cleanUsername}
-            {state.isVerified && <TikTokVerifiedBadge size={13} />}
+            {state.isVerified && <TikTokVerifiedBadge size={13} className="shrink-0" />}
+          </span>
+        </div>
+      );
+    }
+
+    if (state.replyHeaderFormat === 'reply_to_user_only') {
+      return (
+        <div className={`text-[13px] sm:text-[13.5px] font-bold ${headerGray} leading-none flex items-center gap-1.5 whitespace-nowrap overflow-hidden text-ellipsis`}>
+          <span className="shrink-0">Reply to</span>
+          <span className={`font-extrabold ${headerUserColor} flex items-center gap-1 truncate`}>
+            {cleanUsername}
+            {state.isVerified && <TikTokVerifiedBadge size={13} className="shrink-0" />}
           </span>
         </div>
       );
@@ -54,21 +65,22 @@ export const CommentSticker: React.FC<CommentStickerProps> = ({
 
     if (state.replyHeaderFormat === 'custom' && state.customReplyHeaderText) {
       return (
-        <div className={`text-[14px] font-semibold ${headerGray} leading-tight`}>
+        <div className={`text-[13.5px] font-bold ${headerGray} leading-none whitespace-nowrap overflow-hidden text-ellipsis`}>
           {state.customReplyHeaderText}
         </div>
       );
     }
 
     // Default: "Reply to {username}'s comment" (The exact authentic TikTok reply sticker style)
+    // Single-line whitespace-nowrap with shrink-0 ensures "comment" NEVER wraps to the bottom line
     return (
-      <div className={`text-[14px] sm:text-[14.5px] font-bold ${headerGray} leading-tight flex items-center gap-1 flex-wrap`}>
-        <span>Reply to</span>
-        <span className={`font-extrabold ${headerUserColor} flex items-center gap-1`}>
+      <div className={`text-[13px] sm:text-[13.5px] font-bold ${headerGray} leading-none flex items-center gap-1.5 whitespace-nowrap overflow-hidden text-ellipsis`}>
+        <span className="shrink-0">Reply to</span>
+        <span className={`font-extrabold ${headerUserColor} flex items-center gap-1 shrink-0`}>
           {cleanUsername}'s
-          {state.isVerified && <TikTokVerifiedBadge size={13} />}
+          {state.isVerified && <TikTokVerifiedBadge size={13} className="shrink-0" />}
         </span>
-        <span>comment</span>
+        <span className="shrink-0">comment</span>
       </div>
     );
   };
@@ -76,10 +88,12 @@ export const CommentSticker: React.FC<CommentStickerProps> = ({
   return (
     <div
       id={id}
-      className={`relative inline-block w-full max-w-[450px] min-w-[300px] transition-colors duration-150 select-none ${
+      className={`relative inline-block transition-colors duration-150 select-none ${
         state.stickerHasShadow ? 'filter drop-shadow-[0_12px_32px_rgba(0,0,0,0.18)]' : ''
       }`}
       style={{
+        width: `${stickerWidth}px`,
+        maxWidth: '94vw',
         backgroundColor: cardBgHex,
         borderTopLeftRadius: `${borderRadius}px`,
         borderTopRightRadius: `${borderRadius}px`,
@@ -129,9 +143,11 @@ export const CommentSticker: React.FC<CommentStickerProps> = ({
         </div>
 
         {/* Text Body */}
-        <div className="flex-1 min-w-0 pr-1">
+        <div className="flex-1 min-w-0 pr-1 flex flex-col justify-center">
           {/* Header info */}
-          {renderHeader()}
+          <div className="mb-1.5 shrink-0">
+            {renderHeader()}
+          </div>
 
           {/* Comment text */}
           {isEditable && onUpdateState ? (
@@ -139,13 +155,13 @@ export const CommentSticker: React.FC<CommentStickerProps> = ({
               rows={2}
               value={state.commentText}
               onChange={(e) => onUpdateState({ commentText: e.target.value })}
-              className={`mt-1.5 w-full bg-transparent border-none outline-none resize-none font-extrabold tracking-[-0.02em] leading-[1.26] ${textColor}`}
+              className={`w-full bg-transparent border-none outline-none resize-none font-extrabold tracking-[-0.02em] leading-[1.26] ${textColor}`}
               style={{ fontSize: `${fontSize}px` }}
               placeholder="Write any comment..."
             />
           ) : (
             <p
-              className={`mt-1.5 font-extrabold tracking-[-0.02em] leading-[1.26] break-words whitespace-pre-wrap ${textColor}`}
+              className={`font-extrabold tracking-[-0.02em] leading-[1.26] break-words whitespace-pre-wrap ${textColor}`}
               style={{ fontSize: `${fontSize}px` }}
             >
               {state.commentText}

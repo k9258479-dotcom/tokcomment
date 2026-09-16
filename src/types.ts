@@ -57,7 +57,7 @@ export interface CommentState {
 
   // Sticker specific
   replyingToHandle: string;
-  replyHeaderFormat: 'reply_to_user' | 'replying_to_handle' | 'custom';
+  replyHeaderFormat: 'reply_to_user' | 'reply_to_user_only' | 'replying_to_handle' | 'custom';
   customReplyHeaderText?: string;
   showSpeechBubbleTail: boolean;
   showTikTokLogoOnSticker: boolean;
@@ -65,6 +65,7 @@ export interface CommentState {
   stickerHasShadow: boolean;
   stickerBorderRadius: number; // in px, default 18
   stickerFontSize: number; // default 21
+  stickerWidth?: number; // in px, default 420
   transparentBackground: boolean;
 
   // Export & View

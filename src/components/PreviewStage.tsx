@@ -601,7 +601,7 @@ export const PreviewStage: React.FC<PreviewStageProps> = ({ state, onUpdateState
                   <CommentSticker
                     state={state}
                     onUpdateState={onUpdateState}
-                    isEditable={true}
+                    isEditable={!isExporting}
                   />
                 ) : state.mode === 'single' ? (
                   <CommentFeedItem
