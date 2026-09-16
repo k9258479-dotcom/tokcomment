@@ -1,0 +1,6 @@
+{
+  "name": "TokComment - TikTok Comment Generator",
+  "description": "Realistic TikTok comment generator and video reply sticker creator with transparent PNG export, custom avatars, likes, badges, and video preview.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
