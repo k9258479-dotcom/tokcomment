@@ -14,6 +14,8 @@ export interface CommentReply {
   isCreator: boolean;
   isVerified: boolean;
   isLikedByCreator?: boolean;
+  imageAttachment?: string; // Optional image / GIF / sticker
+  imageAttachmentType?: 'image' | 'sticker';
 }
 
 export interface CommentState {
@@ -34,6 +36,7 @@ export interface CommentState {
   timestamp: string;
   likes: string;
   isLiked: boolean;
+  imageAttachment?: string; // Optional image / sticker in main comment
 
   // Creator like
   likedByCreator: boolean;
@@ -44,6 +47,13 @@ export interface CommentState {
   replies: CommentReply[];
   showReplyCount: boolean;
   totalRepliesCount: string;
+
+  // Comments Sheet / Drawer Mode (from Screenshot)
+  commentsCountTitle?: string; // e.g. "Comments"
+  totalCommentsCount?: string; // e.g. "700"
+  showCloseButton?: boolean;
+  showBottomExpanders?: boolean;
+  moreRepliesText?: string; // e.g. "View 22 more"
 
   // Sticker specific
   replyingToHandle: string;
@@ -82,4 +92,11 @@ export interface CommentPreset {
   isCreator?: boolean;
   likedByCreator?: boolean;
   pinned?: boolean;
+  avatar?: string;
+  mode?: DisplayMode;
+  theme?: ThemeMode;
+  commentsCountTitle?: string;
+  totalCommentsCount?: string;
+  moreRepliesText?: string;
+  replies?: CommentReply[];
 }

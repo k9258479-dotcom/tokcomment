@@ -19,6 +19,7 @@ import {
   RotateCcw,
   Camera,
   Link as LinkIcon,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 interface ControlsPanelProps {
@@ -71,6 +72,32 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
     }
   };
 
+  // Handle reply image attachment upload
+  const handleReplyImageUpload = (
+    replyId: string,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          const updated = state.replies.map((r) =>
+            r.id === replyId
+              ? {
+                  ...r,
+                  imageAttachment: reader.result as string,
+                  imageAttachmentType: 'image' as const,
+                }
+              : r
+          );
+          onUpdateState({ replies: updated });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Handle creator avatar upload
   const handleCreatorAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -104,17 +131,13 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
         isCreator: !!preset.isCreator,
         likedByCreator: !!preset.likedByCreator,
         pinned: !!preset.pinned,
-        ...(idx === 0
-          ? {
-              avatar: AVATAR_PRESETS[0].url,
-              mode: 'sticker',
-              theme: 'light',
-              showSpeechBubbleTail: true,
-              replyHeaderFormat: 'reply_to_user',
-              stickerFontSize: 21,
-              showTikTokLogoOnSticker: false,
-            }
-          : {}),
+        ...(preset.avatar ? { avatar: preset.avatar } : {}),
+        ...(preset.mode ? { mode: preset.mode } : {}),
+        ...(preset.theme ? { theme: preset.theme } : {}),
+        ...(preset.commentsCountTitle ? { commentsCountTitle: preset.commentsCountTitle } : {}),
+        ...(preset.totalCommentsCount ? { totalCommentsCount: preset.totalCommentsCount } : {}),
+        ...(preset.moreRepliesText ? { moreRepliesText: preset.moreRepliesText } : {}),
+        ...(preset.replies ? { replies: preset.replies } : {}),
       });
     }
   };
@@ -202,7 +225,7 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
                 : 'text-neutral-400 hover:text-white hover:bg-neutral-800/60'
             }`}
           >
-            <span>Reply Thread</span>
+            <span>Comments Sheet</span>
           </button>
         </div>
 
@@ -849,9 +872,76 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
         {/* TAB 4: REPLIES (Thread Mode) */}
         {activeTab === 'replies' && state.mode === 'thread' && (
           <div className="space-y-4">
+            {/* TikTok Comments Sheet Top Bar Settings */}
+            <div className="p-3 bg-neutral-900/90 rounded-xl border border-neutral-800 space-y-3">
+              <span className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider block">
+                Comments Sheet Header & Bottom Bar
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] text-neutral-400 font-medium block mb-1">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    value={state.commentsCountTitle || 'Comments'}
+                    onChange={(e) => onUpdateState({ commentsCountTitle: e.target.value })}
+                    placeholder="Comments"
+                    className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-neutral-400 font-medium block mb-1">
+                    Total Count
+                  </label>
+                  <input
+                    type="text"
+                    value={state.totalCommentsCount || '700'}
+                    onChange={(e) => onUpdateState({ totalCommentsCount: e.target.value })}
+                    placeholder="700"
+                    className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] text-neutral-400 font-medium block mb-1">
+                  Bottom Expander Text
+                </label>
+                <input
+                  type="text"
+                  value={state.moreRepliesText || 'View 22 more'}
+                  onChange={(e) => onUpdateState({ moreRepliesText: e.target.value })}
+                  placeholder="View 22 more"
+                  className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1 text-xs text-neutral-400">
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={state.showCloseButton !== false}
+                    onChange={(e) => onUpdateState({ showCloseButton: e.target.checked })}
+                    className="accent-[#FE2C55]"
+                  />
+                  <span>Show Close (✕)</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={state.showBottomExpanders !== false}
+                    onChange={(e) => onUpdateState({ showBottomExpanders: e.target.checked })}
+                    className="accent-[#FE2C55]"
+                  />
+                  <span>Show "View More / Hide"</span>
+                </label>
+              </div>
+            </div>
+
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-neutral-300">
-                Nested Replies List
+                Nested Replies List ({state.replies.length})
               </span>
               <button
                 type="button"
@@ -1001,9 +1091,113 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
                     onUpdateState({ replies: updated });
                   }}
                   rows={2}
-                  placeholder="Reply text..."
+                  placeholder="Reply text (optional if sending sticker/photo)..."
                   className="w-full bg-neutral-900 border border-neutral-800 rounded p-2 text-xs text-white resize-none"
                 />
+
+                {/* Reply Attachment / Sticker Picker */}
+                <div className="p-2 bg-neutral-900/70 rounded-lg border border-neutral-800">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-semibold text-neutral-400 flex items-center gap-1">
+                      <ImageIcon className="w-3 h-3 text-[#20D5EC]" />
+                      Sticker / Photo Attachment:
+                    </span>
+                    {reply.imageAttachment && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = state.replies.map((r) =>
+                            r.id === reply.id
+                              ? { ...r, imageAttachment: undefined, imageAttachmentType: undefined }
+                              : r
+                          );
+                          onUpdateState({ replies: updated });
+                        }}
+                        className="text-[10px] text-rose-400 hover:text-rose-300 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+
+                  {reply.imageAttachment ? (
+                    <div className="flex items-center gap-2 mt-1">
+                      <img
+                        src={reply.imageAttachment}
+                        alt="attachment"
+                        className="w-12 h-12 rounded-lg object-contain bg-neutral-950 p-1 border border-neutral-700"
+                      />
+                      <div className="flex-1 text-[11px] text-neutral-300">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] bg-neutral-800 text-neutral-400 font-medium">
+                          {reply.imageAttachmentType === 'sticker' ? 'Sticker (GIF)' : 'Photo'}
+                        </span>
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <label className="text-[10px] text-[#20D5EC] hover:underline cursor-pointer">
+                            Replace
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleReplyImageUpload(reply.id, e)}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <label className="text-[10px] px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-white font-medium rounded cursor-pointer flex items-center gap-1 transition-colors">
+                        <Upload className="w-2.5 h-2.5" />
+                        <span>Upload File</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleReplyImageUpload(reply.id, e)}
+                          className="hidden"
+                        />
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = state.replies.map((r) =>
+                            r.id === reply.id
+                              ? {
+                                  ...r,
+                                  imageAttachment: '/assets/crying_doodle.svg',
+                                  imageAttachmentType: 'sticker' as const,
+                                }
+                              : r
+                          );
+                          onUpdateState({ replies: updated });
+                        }}
+                        className="text-[10px] px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded transition-colors"
+                      >
+                        🐶 Crying Dog Sticker
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = state.replies.map((r) =>
+                            r.id === reply.id
+                              ? {
+                                  ...r,
+                                  imageAttachment:
+                                    'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&auto=format&fit=crop&q=80',
+                                  imageAttachmentType: 'image' as const,
+                                }
+                              : r
+                          );
+                          onUpdateState({ replies: updated });
+                        }}
+                        className="text-[10px] px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded transition-colors"
+                      >
+                        🎂 Birthday Cake
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex items-center justify-between text-xs text-neutral-400">
                   <label className="flex items-center gap-1.5 cursor-pointer">
